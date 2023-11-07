@@ -52,7 +52,7 @@ impl<'a> Stream<'a> {
         let mut arena = Arena::new(dev.handle(), buf_type);
         let count = arena.allocate(buf_count)?;
         let mut buf_meta = Vec::new();
-        buf_meta.resize(count as usize, unsafe { Metadata { ..mem::zeroed() } });
+        buf_meta.resize(count as usize, Metadata::default());
 
         Ok(Stream {
             handle: dev.handle(),

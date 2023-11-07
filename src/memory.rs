@@ -10,8 +10,9 @@ use crate::v4l2;
 #[allow(clippy::unreadable_literal)]
 #[rustfmt::skip]
 #[repr(u32)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum Memory {
+    #[default]
     Mmap        = 1,
     UserPtr     = 2,
     Overlay     = 3,

@@ -36,7 +36,7 @@ pub struct Queue<B, S> {
     _marker: PhantomData<S>,
 }
 
-mod queue {
+pub mod queue {
     pub struct Idle {}
 
     pub struct Streaming {}
@@ -65,7 +65,9 @@ impl<B, S> Queue<B, S> {
             type_: self.buf_type as u32,
             memory: memory as u32,
             count,
-            ..unsafe { mem::zeroed() }
+            capabilities: 0,
+            reserved: [0],
+            // ..unsafe { mem::zeroed() }
         };
 
         unsafe {
@@ -125,7 +127,7 @@ impl<B, S> Queue<B, S> {
     }
 
     /// Insert a buffer into the drivers' incoming queue
-    fn qbuf(&mut self, buf: &mut v4l2_buffer) -> io::Result<()> {
+    fn qbuf(&self, buf: &mut v4l2_buffer) -> io::Result<()> {
         buf.type_ = self.buf_type as u32;
 
         unsafe {
@@ -138,7 +140,7 @@ impl<B, S> Queue<B, S> {
     }
 
     /// Remove a buffer from the drivers' outgoing queue
-    fn dqbuf(&mut self, buf: &mut v4l2_buffer) -> io::Result<()> {
+    fn dqbuf(&self, buf: &mut v4l2_buffer) -> io::Result<()> {
         buf.type_ = self.buf_type as u32;
 
         unsafe {
@@ -154,7 +156,7 @@ impl<B, S> Queue<B, S> {
 impl<B, S> Index<usize> for Queue<B, S> {
     type Output = B;
 
-    fn index(&self, index: usize) -> &Self::Output {
+    fn index<'a>(&'a self, index: usize) -> &'a Self::Output {
         &self.bufs[index]
     }
 }
@@ -199,7 +201,7 @@ impl<S> Queue<Mmap<'_>, S> {
     /// # Arguments
     ///
     /// * `buf` - Buffer metadata
-    pub fn enqueue(&mut self, buf: &Metadata) -> io::Result<()> {
+    pub fn enqueue(&self, buf: &Metadata) -> io::Result<()> {
         let mut buf: v4l2_buffer = (*buf).into();
         buf.memory = Memory::Mmap as u32;
 
@@ -207,8 +209,9 @@ impl<S> Queue<Mmap<'_>, S> {
     }
 
     /// Remove a buffer from the drivers' outgoing queue
-    pub fn dequeue(&mut self) -> io::Result<Metadata> {
+    pub fn dequeue(&self) -> io::Result<Metadata> {
         let mut buf = v4l2_buffer {
+            type_: Type::VideoCapture as u32,
             memory: Memory::Mmap as u32,
             ..unsafe { mem::zeroed() }
         };
@@ -279,7 +282,7 @@ impl<S> Queue<UserPtr, S> {
     /// # Arguments
     ///
     /// * `buf` - Buffer metadata
-    pub fn enqueue(&mut self, buf: &Metadata) -> io::Result<()> {
+    pub fn enqueue(&self, buf: &Metadata) -> io::Result<()> {
         let mut buf: v4l2_buffer = (*buf).into();
         buf.memory = Memory::UserPtr as u32;
         buf.m = v4l2_buffer__bindgen_ty_1 {
@@ -290,7 +293,7 @@ impl<S> Queue<UserPtr, S> {
     }
 
     /// Remove a buffer from the drivers' outgoing queue
-    pub fn dequeue(&mut self) -> io::Result<Metadata> {
+    pub fn dequeue(&self) -> io::Result<Metadata> {
         let mut buf = v4l2_buffer {
             memory: Memory::UserPtr as u32,
             ..unsafe { mem::zeroed() }

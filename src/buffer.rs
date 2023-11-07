@@ -101,7 +101,7 @@ impl fmt::Display for Flags {
 }
 
 /// Buffer metadata, mostly used not to convolute the main buffer structs
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Metadata {
     /// Number of the buffer
     pub index: u32,
@@ -122,6 +122,7 @@ pub struct Metadata {
     /// Single-planar API: size of the buffer (not payload!)
     /// Multi-planar API: number of planes
     pub length: u32,
+    pub offset: u32,
 }
 
 impl From<v4l2_buffer> for Metadata {
@@ -136,6 +137,7 @@ impl From<v4l2_buffer> for Metadata {
             sequence: buf.sequence,
             memory: buf.memory.try_into().unwrap(),
             length: buf.length,
+            offset: unsafe { buf.m.offset },
         }
     }
 }
@@ -153,6 +155,9 @@ impl Into<v4l2_buffer> for Metadata {
                 sequence: self.sequence,
                 memory: self.memory as u32,
                 length: self.length,
+                m: v4l2_sys::v4l2_buffer__bindgen_ty_1 {
+                    offset: self.offset,
+                },
                 ..mem::zeroed()
             }
         }
