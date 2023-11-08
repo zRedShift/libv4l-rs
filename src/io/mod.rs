@@ -66,8 +66,7 @@ impl<B, S> Queue<B, S> {
             memory: memory as u32,
             count,
             capabilities: 0,
-            reserved: [0],
-            // ..unsafe { mem::zeroed() }
+            ..unsafe { mem::zeroed() }
         };
 
         unsafe {
